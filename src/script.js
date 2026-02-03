@@ -7,6 +7,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const downloadBtn = document.getElementById('downloadBtn');
     const poemContainer = document.getElementById('poemContainer');
     const whiteoutOverlay = document.getElementById('whiteoutOverlay');
+    const magicCircleContainer = document.getElementById('magicCircleContainer');
+
+    // 魔法陣の初期化
+    const magicCircle = new MagicCircle('magicCircleCanvas');
 
     // 効果音的な演出（コンソールログ）
     const logFlavorText = () => {
@@ -153,19 +157,40 @@ document.addEventListener('DOMContentLoaded', () => {
         container.classList.add('shake');
     };
 
+    // 魔法陣停止用のタイマー管理
+    let magicCircleStopTimeout = null;
+
     const showResult = () => {
+        // 以前の停止予約があればキャンセル
+        if (magicCircleStopTimeout) {
+            clearTimeout(magicCircleStopTimeout);
+            magicCircleStopTimeout = null;
+        }
+
         triggerWhiteout();
         logFlavorText();
         const poem = generatePoem();
+
+        // 魔法陣の起動
+        magicCircleContainer.classList.add('active');
+        magicCircle.start();
 
         // 演出：一旦リセット
         poemText.textContent = '';
         resultArea.classList.remove('hidden');
 
-        // 少し待ってからデコーディング演出開始
+        // デコーディング演出のタイミング調整
         setTimeout(() => {
+            // 魔法陣が消え始めると同時にポエムの出力を開始
+            magicCircleContainer.classList.remove('active');
             typeWriterWithDecode(poem, poemText);
-        }, 500);
+
+            // CSSのフェードアウト（1.2s）が完全に終わるまで描画を続ける
+            magicCircleStopTimeout = setTimeout(() => {
+                magicCircle.stop();
+                magicCircleStopTimeout = null;
+            }, 1250); // 1.2s + α
+        }, 600);
     };
 
     generateBtn.addEventListener('click', showResult);
