@@ -54,6 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
         poem = poem.replace(/{diff_noun}/g, () => getRandomNoun());
         poem = poem.replace(/{diff_noun_2}/g, () => getRandomNoun());
 
+        // 文末（。！？）の後に改行がない場合、適度に改行を入れる「いい感じ」の調整
+        poem = poem.replace(/([。！？])(?![\n\s」])/g, "$1\n");
+
         return poem;
     };
 
