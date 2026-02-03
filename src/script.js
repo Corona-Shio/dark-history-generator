@@ -65,38 +65,37 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetText = text;
         const length = targetText.length;
 
-        // 初期状態：暗号化された文字で埋める
-        let currentDisplay = Array.from({ length }, (_, i) =>
-            targetText[i] === '\n' ? '\n' : charSet[Math.floor(Math.random() * charSet.length)]
-        );
-
-        element.textContent = currentDisplay.join('');
+        element.textContent = '';
         element.classList.add('decoding');
 
         let revealedCount = 0;
-        const revealInterval = 40; // 確定の間隔 (ms)
+        const revealInterval = 40; // 1文字確定する間隔 (ms)
 
         const animate = () => {
-            if (revealedCount >= length) {
+            if (revealedCount > length) {
                 element.classList.remove('decoding');
-                element.textContent = targetText; // 最終的に原文に合わせる
+                element.textContent = targetText; // 最終的に原文を確実にセット
                 return;
             }
 
-            // まだ確定していない部分をランダムに変える
-            for (let i = revealedCount; i < length; i++) {
-                if (targetText[i] !== '\n' && Math.random() > 0.8) {
-                    currentDisplay[i] = charSet[Math.floor(Math.random() * charSet.length)];
+            // 確定済みの部分
+            let display = targetText.slice(0, revealedCount);
+
+            // デコード中の部分（1〜3文字をランダムに生成して追従させる）
+            if (revealedCount < length) {
+                const glitchLength = Math.floor(Math.random() * 3) + 1; // 1〜3文字
+                for (let i = 0; i < glitchLength; i++) {
+                    if (revealedCount + i < length) {
+                        // 改行の場合はそのまま表示するかスキップするか検討。
+                        // デザイン的に記号を混ぜるのが良いので、ランダム記号にする
+                        display += charSet[Math.floor(Math.random() * charSet.length)];
+                    }
                 }
             }
 
-            // 1文字確定させる
-            currentDisplay[revealedCount] = targetText[revealedCount];
+            element.textContent = display;
             revealedCount++;
 
-            element.textContent = currentDisplay.join('');
-
-            // 次の文字へ
             setTimeout(animate, revealInterval);
         };
 
