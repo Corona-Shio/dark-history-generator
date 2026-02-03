@@ -158,6 +158,24 @@ input[type="text"]:focus {
     background-clip: text;
     -webkit-text-fill-color: transparent;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    overflow-wrap: anywhere;
+    word-break: normal;
+    text-wrap: balance;
+}
+
+.phrase {
+    display: inline-block;
+}
+
+@media (max-width: 480px) {
+    .poem-content p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+
+    .poem-container {
+        padding: 20px;
+    }
 }
 
 .action-buttons {

@@ -37,24 +37,24 @@ document.addEventListener('DOMContentLoaded', () => {
         let template = getRandomItem(templates);
 
         // プレースホルダーを置換
-        // 異なる単語を選ぶために、すでに選ばれたものを除外したりする簡易ロジック
+        // 各単語をphraseクラスを持つspanで囲む
+        const wrap = (str) => `<span class="phrase">${str}</span>`;
+
         const getRandomNoun = () => getRandomItem(nouns);
         const getRandomAdj = () => getRandomItem(adjectives);
 
         let poem = template
-            .replace(/{name}/g, name)
-            .replace(/{title}/g, getRandomItem(titles))
-            .replace(/{verb}/g, getRandomItem(verbs))
-            .replace(/{diff_verb}/g, getRandomItem(verbs));
+            .replace(/{name}/g, wrap(name))
+            .replace(/{title}/g, () => wrap(getRandomItem(titles)))
+            .replace(/{verb}/g, () => wrap(getRandomItem(verbs)))
+            .replace(/{diff_verb}/g, () => wrap(getRandomItem(verbs)));
 
-        // 名詞の重複を避けるための少し賢い置換
-        // (厳密な重複排除はしていないが、ランダム性が高いので良しとする)
-        poem = poem.replace(/{adj}/g, () => getRandomAdj());
-        poem = poem.replace(/{noun}/g, () => getRandomNoun());
-        poem = poem.replace(/{diff_noun}/g, () => getRandomNoun());
-        poem = poem.replace(/{diff_noun_2}/g, () => getRandomNoun());
+        poem = poem.replace(/{adj}/g, () => wrap(getRandomAdj()));
+        poem = poem.replace(/{noun}/g, () => wrap(getRandomNoun()));
+        poem = poem.replace(/{diff_noun}/g, () => wrap(getRandomNoun()));
+        poem = poem.replace(/{diff_noun_2}/g, () => wrap(getRandomNoun()));
 
-        // 文末（。！？）の後に改行がない場合、適度に改行を入れる「いい感じ」の調整
+        // 文末（。！？）の後に改行がない場合、適度に改行を入れる
         poem = poem.replace(/([。！？])(?![\n\s」])/g, "$1\n");
 
         return poem;
@@ -62,39 +62,78 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const typeWriterWithDecode = (text, element) => {
         const charSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/!\"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
-        const targetText = text;
-        const length = targetText.length;
 
-        element.textContent = '';
+        // HTMLタグをパースして配列にする (テキスト、タグ、改行などを分ける)
+        const parts = [];
+        let currentIdx = 0;
+        const tagRegex = /(<[^>]*>|\n)/g;
+        let match;
+
+        while ((match = tagRegex.exec(text)) !== null) {
+            if (match.index > currentIdx) {
+                parts.push({ type: 'text', content: text.slice(currentIdx, match.index) });
+            }
+            parts.push({ type: match[1] === '\n' ? 'newline' : 'tag', content: match[1] });
+            currentIdx = tagRegex.lastIndex;
+        }
+        if (currentIdx < text.length) {
+            parts.push({ type: 'text', content: text.slice(currentIdx) });
+        }
+
+        element.innerHTML = '';
         element.classList.add('decoding');
 
-        let revealedCount = 0;
-        const revealInterval = 40; // 1文字確定する間隔 (ms)
+        let partIndex = 0;
+        let charIndex = 0;
+        const revealInterval = 25; // 少し速める
 
         const animate = () => {
-            if (revealedCount > length) {
+            if (partIndex >= parts.length) {
                 element.classList.remove('decoding');
-                element.textContent = targetText; // 最終的に原文を確実にセット
+                element.innerHTML = text; // 最終的に原文を確実にセット
                 return;
             }
 
-            // 確定済みの部分
-            let display = targetText.slice(0, revealedCount);
+            const currentPart = parts[partIndex];
 
-            // デコード中の部分（1〜3文字をランダムに生成して追従させる）
-            if (revealedCount < length) {
-                const glitchLength = Math.floor(Math.random() * 3) + 1; // 1〜3文字
-                for (let i = 0; i < glitchLength; i++) {
-                    if (revealedCount + i < length) {
-                        // 改行の場合はそのまま表示するかスキップするか検討。
-                        // デザイン的に記号を混ぜるのが良いので、ランダム記号にする
-                        display += charSet[Math.floor(Math.random() * charSet.length)];
+            if (currentPart.type === 'tag') {
+                // タグは一瞬で追加（非表示だがDOM構造を維持）
+                partIndex++;
+                animate();
+                return;
+            }
+
+            if (currentPart.type === 'newline') {
+                partIndex++;
+                animate();
+                return;
+            }
+
+            // テキストの場合、1文字ずつ確定させていく
+            // 現在の全表示用HTMLを作成
+            let currentHTML = "";
+            for (let i = 0; i < parts.length; i++) {
+                if (i < partIndex) {
+                    currentHTML += parts[i].content;
+                } else if (i === partIndex) {
+                    currentHTML += currentPart.content.slice(0, charIndex);
+                    // デコード中の演出文字
+                    if (charIndex < currentPart.content.length) {
+                        const glitchLength = Math.min(2, currentPart.content.length - charIndex);
+                        for (let j = 0; j < glitchLength; j++) {
+                            currentHTML += charSet[Math.floor(Math.random() * charSet.length)];
+                        }
                     }
                 }
             }
 
-            element.textContent = display;
-            revealedCount++;
+            element.innerHTML = currentHTML;
+
+            charIndex++;
+            if (charIndex > currentPart.content.length) {
+                charIndex = 0;
+                partIndex++;
+            }
 
             setTimeout(animate, revealInterval);
         };
