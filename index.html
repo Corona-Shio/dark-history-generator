@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ワンクリック黒歴史ポエム生成機</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@400;700&family=Yuji+Syuku&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="src/style.css">
+    <!-- html2canvas for image generation -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ワンクリック<br><span class="glitch" data-text="黒歴史">黒歴史</span>ポエム生成機</h1>
+            <p>※ 音は出ませんが、精神的ダメージを受ける可能性があります。</p>
+        </header>
+
+        <main>
+            <div class="input-area">
+                <input type="text" id="userName" placeholder="汝の名を刻め (未入力可)" maxlength="10">
+                <button id="generateBtn" class="neon-btn">儀式を行う</button>
+            </div>
+
+            <div id="resultArea" class="result-area hidden">
+                <div class="poem-container" id="poemContainer">
+                    <div class="poem-content">
+                        <p id="poemText"></p>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="retryBtn" class="secondary-btn">再詠唱</button>
+                    <button id="downloadBtn" class="secondary-btn">写しをとる (保存)</button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2026 Dark History Generator / Powered by Gemini 3.0 (Concept)</p>
+        </footer>
+    </div>
+    <script src="src/data.js"></script>
+    <script src="src/script.js"></script>
+</body>
+</html>
