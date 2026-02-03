@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const retryBtn = document.getElementById('retryBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const poemContainer = document.getElementById('poemContainer');
+    const whiteoutOverlay = document.getElementById('whiteoutOverlay');
 
     // 効果音的な演出（コンソールログ）
     const logFlavorText = () => {
@@ -56,20 +57,74 @@ document.addEventListener('DOMContentLoaded', () => {
         return poem;
     };
 
+    const typeWriterWithDecode = (text, element) => {
+        const charSet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?/!\"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~';
+        const targetText = text;
+        const length = targetText.length;
+
+        // 初期状態：暗号化された文字で埋める
+        let currentDisplay = Array.from({ length }, (_, i) =>
+            targetText[i] === '\n' ? '\n' : charSet[Math.floor(Math.random() * charSet.length)]
+        );
+
+        element.textContent = currentDisplay.join('');
+        element.classList.add('decoding');
+
+        let revealedCount = 0;
+        const revealInterval = 40; // 確定の間隔 (ms)
+
+        const animate = () => {
+            if (revealedCount >= length) {
+                element.classList.remove('decoding');
+                element.textContent = targetText; // 最終的に原文に合わせる
+                return;
+            }
+
+            // まだ確定していない部分をランダムに変える
+            for (let i = revealedCount; i < length; i++) {
+                if (targetText[i] !== '\n' && Math.random() > 0.8) {
+                    currentDisplay[i] = charSet[Math.floor(Math.random() * charSet.length)];
+                }
+            }
+
+            // 1文字確定させる
+            currentDisplay[revealedCount] = targetText[revealedCount];
+            revealedCount++;
+
+            element.textContent = currentDisplay.join('');
+
+            // 次の文字へ
+            setTimeout(animate, revealInterval);
+        };
+
+        animate();
+    };
+
+    const triggerWhiteout = () => {
+        whiteoutOverlay.classList.remove('active');
+        void whiteoutOverlay.offsetWidth; // reflow
+        whiteoutOverlay.classList.add('active');
+
+        // スクリーンシェイク
+        const container = document.querySelector('.container');
+        container.classList.remove('shake');
+        void container.offsetWidth; // reflow
+        container.classList.add('shake');
+    };
+
     const showResult = () => {
+        triggerWhiteout();
         logFlavorText();
         const poem = generatePoem();
 
         // 演出：一旦リセット
-        poemText.style.opacity = '0';
+        poemText.textContent = '';
         resultArea.classList.remove('hidden');
 
-        // 少し待ってから表示
+        // 少し待ってからデコーディング演出開始
         setTimeout(() => {
-            poemText.textContent = poem;
-            poemText.style.opacity = '1';
-            poemText.classList.add('fade-in');
-        }, 300);
+            typeWriterWithDecode(poem, poemText);
+        }, 500);
     };
 
     generateBtn.addEventListener('click', showResult);
