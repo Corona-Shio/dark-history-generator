@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultArea = document.getElementById('resultArea');
     const poemText = document.getElementById('poemText');
     const retryBtn = document.getElementById('retryBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
     const poemContainer = document.getElementById('poemContainer');
     const whiteoutOverlay = document.getElementById('whiteoutOverlay');
     const magicCircleContainer = document.getElementById('magicCircleContainer');
@@ -196,15 +195,4 @@ document.addEventListener('DOMContentLoaded', () => {
     generateBtn.addEventListener('click', showResult);
     retryBtn.addEventListener('click', showResult);
 
-    downloadBtn.addEventListener('click', () => {
-        html2canvas(poemContainer, {
-            backgroundColor: null, // 背景透過 or style指定
-            scale: 2 // 高画質
-        }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = `dark_history_${Date.now()}.png`;
-            link.href = canvas.toDataURL();
-            link.click();
-        });
-    });
 });
